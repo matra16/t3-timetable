@@ -1,20 +1,106 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="th">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 <meta name="robots" content="noindex,nofollow">
 <meta name="referrer" content="no-referrer">
-<meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/AKfycbyEJlCq9xfLnte3GkM1NsLOQVrfp1uxcbwFHxalqwEeTyNmRCeTzU6g4RGwdA45hZxkJA/exec">
-<title>ตารางสอน ท๓ — เปิดระบบ</title>
-<style>body{font-family:system-ui,"Sarabun",sans-serif;display:grid;place-items:center;min-height:100vh;margin:0;background:#f1f7fb;color:#13354a}.card{background:#fff;max-width:480px;margin:20px;padding:28px;border-radius:16px;box-shadow:0 6px 22px #153b5515;text-align:center}a{display:inline-block;margin:12px 0;padding:12px 24px;border-radius:9px;background:#11668b;color:white;text-decoration:none;font-weight:700}small{display:block;color:#5d7180;margin-top:10px}</style>
+<title>ตารางเรียนและตารางสอน ท.๓ | V1</title>
+<style>
+:root{font-family:"Sarabun",Tahoma,system-ui,sans-serif;color:#12344a;background:#eff5f8;--accent:#126b8b;--line:#cfdee7}
+*{box-sizing:border-box}body{margin:0}button,select,input{font:inherit}button{cursor:pointer}
+header{background:#fff;border-bottom:1px solid var(--line);padding:12px clamp(12px,3vw,35px);display:flex;gap:10px;align-items:center;justify-content:space-between;flex-wrap:wrap}
+h1{font-size:19px;margin:0}header p{margin:2px 0 0;font-size:12px;color:#4b6677}
+.meta{background:#f0f7fa;border:1px solid #d6e9f1;border-radius:100px;padding:6px 12px;font-size:12px;color:#27546e}
+main{max-width:1600px;margin:auto;padding:12px clamp(10px,2vw,26px) 26px}
+.notice{border:1px solid #bbd0de;background:#f7fafc;border-radius:10px;padding:10px 13px;font-size:13px;display:flex;align-items:center;gap:8px;margin:0 0 10px}
+.notice strong{font-weight:800}
+.toolbar{background:white;border:1px solid var(--line);border-radius:12px;padding:12px;margin-bottom:10px}
+.switch{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.switch button{min-height:52px;border:2px solid #bdd6e3;color:#22566f;border-radius:10px;background:white;font-weight:800;padding:8px;font-size:15px}
+.switch small{display:block;font-weight:500;font-size:11px;margin-top:2px}
+.switch button[aria-pressed=true]{background:var(--accent);color:white;border-color:var(--accent)}
+.switch button:focus-visible,select:focus-visible,button:focus-visible{outline:3px solid #eebc58;outline-offset:2px}
+.controls{display:grid;grid-template-columns:2fr 1fr 1fr;gap:8px;margin-top:9px}
+.field label{display:block;color:#526879;font-size:12px;margin-bottom:3px}
+select{border:1px solid #bed0dc;border-radius:8px;background:white;min-height:42px;padding:8px 10px;width:100%}
+.section-head{display:flex;align-items:center;gap:9px;flex-wrap:wrap;margin:10px 0 7px}
+.section-head h2{font-size:17px;margin:0}.section-head span{font-size:12px;color:#557186}
+.room-strip{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 8px}
+.room-strip button{background:white;border:1px solid #cedee7;color:#2b566e;border-radius:7px;padding:6px 10px;min-height:36px}
+.room-strip button[aria-pressed=true]{background:#d6edf8;border-color:#1780a8;color:#124b66;font-weight:800}
+.board-panel{background:white;border:1px solid var(--line);border-radius:12px;padding:10px;min-height:340px}
+.board-caption{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;margin-bottom:8px}
+.board-caption h3{font-size:16px;margin:0}.board-caption button{border:1px solid #cadce7;border-radius:8px;background:white;padding:8px;font-size:12px}
+.board-scroll{overflow:auto;max-width:100%;border-radius:8px;border:1px solid #d8e5ee}
+table{border-collapse:separate;border-spacing:0;table-layout:fixed;min-width:690px;width:100%;font-size:12px}
+th,td{border-right:1px solid #d9e6ed;border-bottom:1px solid #d9e6ed;text-align:center;padding:8px 6px;height:49px}
+th{background:#e9f4f9;color:#144f6e;position:sticky;top:0;z-index:2}
+th:first-child,td:first-child{position:sticky;left:0;z-index:1;background:#f1f8fb;width:95px;font-weight:800}
+th:first-child{z-index:3}
+.empty{color:#758b99;font-size:11px}
+.note{margin:9px 2px 0;color:#596f7f;font-size:12px;line-height:1.5}
+footer{text-align:center;color:#6a8391;font-size:11px;padding:12px}
+@media(max-width:670px){h1{font-size:16px}.meta{font-size:11px}.switch{gap:5px}.switch button{font-size:13px;padding:5px;min-height:55px}.switch small{font-size:10px}.controls{grid-template-columns:1fr 1fr}.field:first-child{grid-column:1/-1}.notice{font-size:12px}}
+@media print{header,.toolbar,.room-strip,.notice,.board-caption button,footer{display:none!important}body{background:white}main{padding:0}.board-panel{border:0}table{font-size:11px}}
+</style>
 </head>
 <body>
-<main class="card">
-<h1>ระบบตารางสอน โรงเรียนเทศบาล ๓</h1>
-<p>กำลังเปิด V1 ทดสอบเข้าระบบผ่านลิงก์ โดยไม่ต้องลงชื่อเข้าใช้…</p>
-<a href="https://script.google.com/macros/s/AKfycbyEJlCq9xfLnte3GkM1NsLOQVrfp1uxcbwFHxalqwEeTyNmRCeTzU6g4RGwdA45hZxkJA/exec" rel="noreferrer noopener">เปิดตารางสอน</a>
-<small>ลิงก์นี้เป็นทางลัดเท่านั้น V1 ทดลองการเข้าถึง ยังไม่เชื่อมตารางที่รับรองหรือข้อมูลบุคลากร</small>
+<header>
+  <div><h1>โรงเรียนเทศบาล ๓ (วัดท่ามะปราง) · ตารางเรียนและตารางสอน</h1><p>เว็บสำหรับเปิดดูผ่านลิงก์ · Production V1 ทดลองการเข้าถึง</p></div>
+  <span class="meta" id="releaseStatus">V1 · เปิดหน้าเว็บได้โดยไม่ต้องเข้าสู่ระบบ</span>
+</header>
+<main>
+  <div class="notice" role="status"><strong>แจ้งสถานะข้อมูล:</strong> เวอร์ชันนี้เป็นการทดสอบเปิดเว็บจริง ตารางสอนที่รับรองแล้วยังไม่ได้เชื่อมต่อ จึงไม่แสดงรายชื่อครูหรือตารางสมมติ</div>
+  <section class="toolbar" aria-label="ตัวเลือกกระดาน">
+    <div class="switch" role="group" aria-label="เลือกชุดกระดาน">
+      <button data-group="all" aria-pressed="true" type="button">ทุกห้อง<small>ป.1–6 · 16 ห้อง</small></button>
+      <button data-group="lower" aria-pressed="false" type="button">ประถมต้น<small>ป.1–3 · 7 ห้อง</small></button>
+      <button data-group="upper" aria-pressed="false" type="button">ประถมปลาย<small>ป.4–6 · 9 ห้อง</small></button>
+    </div>
+    <div class="controls">
+      <div class="field"><label for="classPicker">ห้องเรียน</label><select id="classPicker"></select></div>
+      <div class="field"><label for="dayPicker">วัน</label><select id="dayPicker"><option value="all">ทุกวัน</option><option value="จันทร์">จันทร์</option><option value="อังคาร">อังคาร</option><option value="พุธ">พุธ</option><option value="พฤหัสบดี">พฤหัสบดี</option><option value="ศุกร์">ศุกร์</option></select></div>
+      <div class="field"><label for="periodPicker">ช่วงเรียน</label><select id="periodPicker"><option value="all">ทุกช่วง</option><option value="1">ช่วง 1</option><option value="2">ช่วง 2</option><option value="3">ช่วง 3</option><option value="4">ช่วง 4</option><option value="5">ช่วง 5</option><option value="6">ช่วง 6</option></select></div>
+    </div>
+  </section>
+  <div class="section-head"><h2>กระดานตารางเรียน</h2><span id="roomCount" aria-live="polite">16 ห้อง</span></div>
+  <nav class="room-strip" id="rooms" aria-label="เลือกห้อง"></nav>
+  <section class="board-panel" aria-label="พื้นที่ตารางเรียน">
+    <div class="board-caption"><h3 id="boardTitle">ตารางเรียนทุกห้อง · รอข้อมูลที่รับรอง</h3><button type="button" id="reset">ล้างตัวกรอง</button></div>
+    <div class="board-scroll"><table id="timetable"><thead><tr id="headrow"></tr></thead><tbody id="bodyrows"></tbody></table></div>
+    <p class="note">แสดงเฉพาะโครงสร้างกระดานเพื่อทดสอบการเผยแพร่และการใช้งานบนมือถือ ข้อมูลคาบ วิชา ครู สถานที่ และการแก้ไข จะเปิดเมื่อผ่านการตรวจต้นฉบับ การอนุมัติ และสิทธิ์ของระบบ</p>
+  </section>
 </main>
-</body>
-</html>
+<footer>V1 Public Access Pilot · ไม่มีข้อมูลบุคลากรหรือนักเรียน · ไม่มีการบันทึกข้อมูล</footer>
+<script>
+(()=>{"use strict";
+const groups={lower:["ป.1/1","ป.1/2","ป.2/1","ป.2/2","ป.3/1","ป.3/2","ป.3/3"],upper:["ป.4/1","ป.4/2","ป.4/3","ป.5/1","ป.5/2","ป.5/3","ป.6/1","ป.6/2","ป.6/3"]};
+groups.all=[...groups.lower,...groups.upper];
+const days=["จันทร์","อังคาร","พุธ","พฤหัสบดี","ศุกร์"];let group="all";let selectedRoom="all";
+const q=id=>document.getElementById(id);
+function draw(){
+ const names=groups[group];q("roomCount").textContent=names.length+" ห้อง";
+ q("classPicker").innerHTML='<option value="all">ทุกห้องในชุดนี้</option>'+names.map(n=>'<option value="'+n+'">'+n+'</option>').join("");
+ q("classPicker").value=names.includes(selectedRoom)?selectedRoom:"all";
+ selectedRoom=q("classPicker").value;
+ q("rooms").innerHTML=names.map(n=>'<button type="button" data-room="'+n+'" aria-pressed="'+(selectedRoom===n)+'">'+n+'</button>').join("");
+ q("rooms").querySelectorAll("[data-room]").forEach(b=>b.addEventListener("click",()=>{selectedRoom=b.dataset.room;draw()}));
+ const chosen=selectedRoom==="all"?names:[selectedRoom],d=q("dayPicker").value,p=q("periodPicker").value;
+ const periods=p==="all"?[1,2,3,4,5,6]:[Number(p)];
+ q("headrow").innerHTML="<th scope='col'>วัน / ช่วง</th>"+periods.map(n=>"<th scope='col'>ช่วง "+n+"</th>").join("");
+ const list=d==="all"?days:[d];
+ q("bodyrows").innerHTML=list.map(day=>"<tr><td>"+day+"</td>"+periods.map(()=>
+ "<td><span class='empty'>รอตารางที่รับรอง</span></td>").join("")+"</tr>").join("");
+ q("boardTitle").textContent="ตารางเรียน "+(selectedRoom==="all"?chosen.length+" ห้อง":selectedRoom)+" · รอข้อมูลที่รับรอง";
+ document.querySelectorAll("[data-group]").forEach(b=>b.setAttribute("aria-pressed",String(b.dataset.group===group)));
+}
+document.querySelectorAll("[data-group]").forEach(b=>b.addEventListener("click",()=>{group=b.dataset.group;selectedRoom="all";draw()}));
+q("classPicker").addEventListener("change",()=>{selectedRoom=q("classPicker").value;draw()});
+q("dayPicker").addEventListener("change",draw);
+q("periodPicker").addEventListener("change",draw);
+q("reset").addEventListener("click",()=>{group="all";selectedRoom="all";q("dayPicker").value="all";q("periodPicker").value="all";draw()});
+draw();
+})();
+</script>
+</body></html>
