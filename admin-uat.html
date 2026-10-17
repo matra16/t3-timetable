@@ -1,192 +1,196 @@
-<!doctype html><html lang="th"><head>
+<!doctype html>
+<html lang="th">
+<head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>T3 Timetable — Admin UAT ทดลองด้วยข้อมูลจำลอง</title>
-<style>body{font:16px/1.55 "Sarabun",Tahoma,sans-serif;background:#f3f6fb;color:#1c344a;margin:0}
-header{background:#153a58;color:#fff;padding:20px}main{max-width:820px;margin:20px auto;padding:0 16px}
-article{background:white;border:1px solid #dce5ed;border-radius:12px;padding:18px;margin:15px 0}
-button,select{font:inherit;padding:9px;border:1px solid #a7b8c9;border-radius:7px}
-button:disabled{opacity:.45}.muted{color:#52697d}.row{display:flex;gap:10px;flex-wrap:wrap}
-.bad{color:#b24832}h1{font-size:24px}h2{font-size:19px}</style></head><body>
-<header><h1>T3 TIMETABLE · ทดลอง Admin Draft ภาคเรียน 2/2569</h1>
-<div>UAT แบบจำลองในเบราว์เซอร์เท่านั้น · ไม่เชื่อม Google Sheets · ไม่ใช่ตารางสอนจริง</div></header>
-<main>
-<article style="background:#fff8e1;border-color:#ddba62"><strong>โหมดทดสอบเท่านั้น</strong> ใช้รหัสสมมติ เช่น CLASS_QA1, ENG_QA, TEACHER_QA เท่านั้น ห้ามกรอกข้อมูลครูหรือนักเรียนจริง ไม่ส่งข้อมูลออกจากเบราว์เซอร์ และการบันทึกเป็นเพียง Session UAT ไม่ใช่ฐานโรงเรียน <a href="./">กลับหน้า Public</a></article>
-<article><h2>สถานะ UAT Session บนเบราว์เซอร์</h2>
-<button id="refresh" onclick="refresh()">อ่านสถานะล่าสุด</button>
-<button id="startAdmin" onclick="startAdminDraft()" disabled>เริ่มทำงาน Draft สำหรับ Admin</button>
-<p id="state" role="status">กำลังตรวจสิทธิ์และ Revision...</p>
-<p class="muted">ข้อมูลสมมติจะอยู่ใน Session ของแท็บนี้เท่านั้น และไม่ดึงจาก Golden Sheet หรือ Operational Workbook</p>
-</article>
-<article><h2>จัดรายการสอนภาคเรียน 2/2569 — ฉบับร่าง</h2>
-<p class="muted">เพิ่มรายการใหม่จากข้อมูลที่ตรวจรับแล้วเท่านั้น ไม่ยกข้อมูลภาคเรียนก่อนเป็นตารางจริงอัตโนมัติ
-เวลาเริ่ม–สิ้นสุดและนาทีเป็นข้อมูลจริง ไม่ถือว่า 1 ช่วงเรียนเท่ากับ 1 ชั่วโมง</p>
-<div class="row">
-<label>ห้องเรียนรหัส <input id="cl" placeholder="ClassRef"></label>
-<label>รายวิชารหัส <input id="co" placeholder="CourseRef"></label>
-<label>ครูหลักรหัส <input id="te" placeholder="TeacherRef"></label>
-<label>ครูร่วมรหัส (ถ้ามี) <input id="ct" placeholder="CoTeacherRef"></label>
-<label>สถานที่รหัส <input id="ve" placeholder="VenueRef"></label>
-<label>วัน <select id="day"><option value="0">จันทร์</option><option value="1">อังคาร</option>
-<option value="2">พุธ</option><option value="3">พฤหัสบดี</option><option value="4">ศุกร์</option></select></label>
-<label>ช่วงเรียนรหัส <input id="per" placeholder="P01"></label>
-<label>เวลาเริ่ม <input type="time" id="st"></label>
-<label>เวลาสิ้นสุด <input type="time" id="en"></label>
+<meta name="description" content="T3 Timetable OS — ทดลองจัดตารางเรียนแบบจำลอง ไม่เชื่อมข้อมูลโรงเรียน">
+<meta name="robots" content="noindex,nofollow"><meta name="referrer" content="no-referrer">
+<title>T3 TIMETABLE OS | Admin Workspace V33 UAT</title>
+<link rel="stylesheet" href="./t3tt-pro.css">
+</head>
+<body>
+<div class="app-shell" id="shell">
+<div class="mobile-scrim" id="scrim"></div>
+<aside class="sidebar" aria-label="เมนูระบบ">
+ <div class="brand"><div class="brand-mark">๓</div><div><div class="brand-title">T3 TIMETABLE</div><div class="brand-sub">SMART COVER OS · V33</div></div></div>
+ <div class="nav-heading">WORKSPACE</div>
+ <nav aria-label="เมนูหลัก">
+  <button class="nav-button is-active" data-view="overview" aria-current="page"><span class="nav-icon">▦</span> ภาพรวมระบบ</button>
+  <button class="nav-button" data-view="timetable"><span class="nav-icon">▤</span> ตารางเรียนรายห้อง</button>
+  <button class="nav-button" data-view="editor"><span class="nav-icon">✎</span> จัดตารางฉบับร่าง <span class="nav-dot">UAT</span></button>
+  <button class="nav-button" data-view="courses"><span class="nav-icon">▣</span> รายวิชาและหลักสูตร</button>
+  <button class="nav-button" data-view="workload"><span class="nav-icon">◴</span> ผู้สอนและภาระงาน</button>
+  <button class="nav-button" data-view="venues"><span class="nav-icon">⌂</span> ห้องและสถานที่</button>
+  <button class="nav-button" data-view="cover"><span class="nav-icon">⇄</span> สอนแทนอัจฉริยะ</button>
+  <button class="nav-button" data-view="reports"><span class="nav-icon">▧</span> รายงานและพิมพ์</button>
+ </nav>
+ <div class="nav-heading">การควบคุม</div>
+ <nav aria-label="การควบคุมระบบ">
+  <button class="nav-button" data-view="audit"><span class="nav-icon">◷</span> ประวัติและ Restore</button>
+  <button class="nav-button" data-view="settings"><span class="nav-icon">⚙</span> สถานะและสิทธิ์</button>
+ </nav>
+ <div class="sidebar-foot"><strong>พื้นที่ทดลอง — ข้อมูลจำลอง</strong>
+ <p>ไม่เชื่อม Google Sheets และไม่มีสิทธิ์เผยแพร่ตารางสอนจริง</p><p><a href="./">กลับหน้าตารางสาธารณะ ↗</a></p></div>
+</aside>
+<div class="workspace">
+<header class="topbar">
+ <div class="top-left"><button class="mobile-trigger" id="menuTrigger" aria-label="เปิดเมนู">☰</button>
+  <div><div class="crumb">โรงเรียนเทศบาล ๓ (วัดท่ามะปราง) / <span id="crumb">ภาพรวมระบบ</span></div>
+  <h1 class="top-title" id="topTitle">ภาพรวมระบบจัดตารางสอน</h1></div></div>
+ <div class="top-tools"><span class="top-term">ภาคเรียน 2 / 2569</span><span class="pill">UAT · ข้อมูลจำลอง</span></div>
+</header>
+<main class="content" id="main">
+ <div class="notice warn" role="note"><span class="notice-symbol">ⓘ</span><div>
+ <strong>โหมดทดลองการทำงาน ไม่ใช่ฐานข้อมูลโรงเรียน</strong>
+ <p>ใช้เฉพาะรหัสตัวอย่าง ไม่มีการอ่านหรือเขียนข้อมูลจริงลง Google Sheets ข้อมูลเก็บใน Session ของแท็บนี้ และไม่ถือเป็นตารางที่ผ่านการอนุมัติ</p></div></div>
+ <section class="view" id="view-overview" data-title="ภาพรวมระบบจัดตารางสอน">
+  <div class="page-header"><div><div class="eyebrow">SCHOOL OPERATIONS / OVERVIEW</div><h2>ภาพรวมการจัดตาราง</h2><p>ดูความคืบหน้าของฉบับร่าง สถานะทรัพยากร และงานที่ต้องดำเนินการต่อ</p></div>
+  <div class="header-actions"><button class="btn primary" data-go="editor">＋ จัดตารางสอน</button></div></div>
+  <div class="metrics">
+   <div class="metric"><div class="metric-top">ห้องเรียนในโครงสร้าง <span class="metric-icon">▤</span></div><div class="metric-number">16</div><div class="metric-foot">ระดับประถมศึกษา ป.1–ป.6 · รายชื่อห้องเท่านั้น</div></div>
+   <div class="metric"><div class="metric-top">รายการสอนใน UAT <span class="metric-icon">▦</span></div><div class="metric-number" id="metricAssignments">0</div><div class="metric-foot">รายการฉบับร่างในแท็บนี้</div></div>
+   <div class="metric"><div class="metric-top">ผู้สอนรหัสจำลอง <span class="metric-icon">♧</span></div><div class="metric-number" id="metricTeachers">0</div><div class="metric-foot">นับครูหลักและครูร่วมไม่ซ้ำ</div></div>
+   <div class="metric"><div class="metric-top">ชั่วโมงสอนรวม <span class="metric-icon">◷</span></div><div class="metric-number" id="metricHours">0.00</div><div class="metric-foot">คำนวณจาก duration_minutes ไม่ใช่จำนวนคาบ</div></div>
+  </div>
+  <div class="two-col">
+   <div class="panel"><div class="panel-head"><div><h3>ตารางรายสัปดาห์</h3><p>สรุปจากรายการที่บันทึกใน Session เท่านั้น</p></div><button class="btn small" data-go="timetable">ดูตารางเต็ม →</button></div>
+    <div class="panel-body"><div class="week-board" id="overviewWeek"></div><div class="section-note">ช่วงเวลาแสดงจากเวลาเริ่มและสิ้นสุดจริง ไม่สมมติว่า 1 คาบ = 1 ชั่วโมง</div></div></div>
+   <div class="stack">
+    <div class="panel"><div class="panel-head"><div><h3>เริ่มใช้งานอย่างเป็นขั้นตอน</h3><p>ทดสอบได้โดยไม่ต้องมีข้อมูลส่วนบุคคล</p></div></div><div class="panel-body"><div class="steps">
+     <div class="step"><span class="step-mark">1</span><div><strong>เริ่ม Session ร่าง</strong><p>เปิดการทดลอง Draft และ Revision 0</p></div></div>
+     <div class="step"><span class="step-mark">2</span><div><strong>เพิ่มรายการและตรวจการชนกัน</strong><p>กรอกรหัสจำลอง ครูหลัก/ร่วม ห้อง สถานที่ และเวลา</p></div></div>
+     <div class="step"><span class="step-mark">3</span><div><strong>บันทึกและตรวจผล</strong><p>ทดสอบ Revision, โหลดหน้าใหม่, Audit และ Restore</p></div></div></div>
+     <div class="btn-row" style="margin-top:17px"><button class="btn primary" data-go="editor">เริ่มทดสอบ Admin →</button><button class="btn" id="seedOverview">โหลดข้อมูลสมมติ 12 รายการ</button></div></div></div>
+    <div class="panel"><div class="panel-head"><div><h3>สถานะ Session</h3><p>แยกจากฐาน Operational จริง</p></div></div>
+    <div class="panel-body"><p class="state-line" id="overviewStatus">กำลังโหลด Session…</p><div class="divider"></div>
+     <div class="stat-hint"><span class="stat-dot"></span><span id="overviewRevision">Revision 0 · ยังไม่ได้เริ่ม Draft</span></div></div></div>
+   </div>
+  </div>
+ </section>
+ <section class="view" id="view-editor" data-title="จัดตารางสอนฉบับร่าง" hidden>
+  <div class="page-header"><div><div class="eyebrow">SCHEDULE BUILDER / UAT</div><h2>จัดตารางสอนฉบับร่าง</h2><p>เพิ่ม แก้ไข ลบ และตรวจรายการสอนจากข้อมูลสมมติ โดยไม่บันทึกลง Cloud</p></div>
+   <div class="header-actions"><span class="floating-ribbon" id="editorRevision">Revision 0</span></div></div>
+  <div class="panel" style="margin-bottom:17px"><div class="panel-head"><div><h3>สถานะการทำงาน</h3><p>เริ่ม Draft หนึ่งครั้ง จากนั้นจึงเพิ่มและบันทึกรายการได้</p></div>
+   <div class="btn-row"><button class="btn" id="refresh">อ่านสถานะล่าสุด</button><button class="btn primary" id="startAdmin">เริ่มทดลอง Draft</button></div></div>
+   <div class="panel-body"><div class="summary-strip"><span id="state" role="status">กำลังอ่านสถานะ UAT…</span><span id="editorMode">ยังไม่เริ่ม</span></div></div></div>
+  <div class="panel" style="margin-bottom:17px"><div class="panel-head"><div><h3>รายละเอียดรายการสอน</h3><p>ทุกช่องที่มี * ต้องระบุให้ครบ ใช้รหัสสมมติในการทดสอบ</p></div><div class="btn-row"><button class="btn small" id="sample">ใส่ข้อมูลตัวอย่าง</button><button class="btn small primary" id="seedEditor">สร้างตัวอย่าง 12 รายการ</button></div></div>
+   <div class="panel-body">
+    <div class="form-group-title"><h4>ข้อมูลรายวิชาและผู้สอน</h4><span class="kicker">01 / ASSIGNMENT</span></div>
+    <form id="draftForm" autocomplete="off">
+    <div class="field-grid">
+     <label><span class="field-label">ห้องเรียน *</span><input class="field-input" id="cl" list="classOptions" placeholder="เช่น P6_1" required><datalist id="classOptions"></datalist></label>
+     <label><span class="field-label">รหัสรายวิชา *</span><input class="field-input" id="co" placeholder="เช่น ENG_QA" required></label>
+     <label><span class="field-label">สถานที่ *</span><input class="field-input" id="ve" placeholder="เช่น ROOM_QA1" required></label>
+     <label><span class="field-label">ครูผู้สอนหลัก *</span><input class="field-input" id="te" placeholder="เช่น TEACHER_QA" required></label>
+     <label><span class="field-label">ครูร่วมสอน (ถ้ามี)</span><input class="field-input" id="ct" placeholder="เช่น COTEACHER_QA"></label>
+     <label><span class="field-label">รหัสช่วงเรียน *</span><input class="field-input" id="per" placeholder="เช่น P01" required></label>
+    </div>
+    <hr class="form-divider">
+    <div class="form-group-title"><h4>วันและช่วงเวลา</h4><span class="kicker">02 / TIME RANGE</span></div>
+    <div class="field-grid">
+      <label><span class="field-label">วันเรียน *</span><select id="day"><option value="0">วันจันทร์</option><option value="1">วันอังคาร</option><option value="2">วันพุธ</option><option value="3">วันพฤหัสบดี</option><option value="4">วันศุกร์</option></select></label>
+      <label><span class="field-label">เวลาเริ่ม *</span><input class="field-input" type="time" id="st" required value="08:00"></label>
+      <label><span class="field-label">เวลาสิ้นสุด *</span><input class="field-input" type="time" id="en" required value="08:50"></label>
+    </div><div class="field-hint">ระบบคำนวณจำนวนนาทีจากเวลาเริ่ม–สิ้นสุดโดยตรง ไม่ตีความรหัสคาบเป็นชั่วโมง</div>
+    <div class="btn-row" style="margin-top:21px"><button class="btn dark" id="add" type="submit">＋ เพิ่มรายการในร่าง</button>
+    <button class="btn primary" id="save" type="button" disabled>บันทึก Revision ใน UAT</button>
+    <button class="btn" id="cancelEdit" type="button" hidden>ยกเลิกการแก้ไข</button></div>
+    </form>
+    <p id="editState" role="status" class="inline-feedback" style="margin:12px 0 0">ยังไม่มีรายการแก้ไข</p>
+   </div></div>
+  <div class="panel"><div class="panel-head"><div><h3>รายการสอนในฉบับร่าง</h3><p>คลิกแก้ไขได้ก่อนบันทึก ระบบตรวจชนกันทั้งครูหลัก ครูร่วม ห้อง และสถานที่</p></div><span class="kicker" id="draftCount">0 รายการ</span></div>
+   <div class="panel-body" style="padding-top:5px"><div id="grid" class="table-scroll" aria-label="รายการสอนใน Draft"></div></div>
+   <div class="panel-footer"><div id="message" class="inline-feedback" role="status">พร้อมทดลองการสร้าง Draft</div></div></div>
+ </section>
+ <section class="view" id="view-timetable" data-title="ตารางเรียนรายห้อง" hidden>
+  <div class="page-header"><div><div class="eyebrow">WEEKLY PLANNER / CLASS VIEW</div><h2>ตารางเรียนรายห้อง</h2><p>สำรวจตารางรายวัน และกรองห้องเรียน/วันจาก Draft ปัจจุบัน</p></div>
+  <div class="header-actions"><button class="btn" data-go="editor">＋ เพิ่มรายการสอน</button></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>เลือกมุมมองตาราง</h3><p>ข้อมูล UAT เท่านั้น ไม่ใช่ตารางที่โรงเรียนประกาศใช้</p></div></div>
+   <div class="panel-body"><div class="filter-bar">
+    <label><span class="field-label">ห้องเรียน</span><select id="filterClass"><option value="all">ทุกห้อง</option></select></label>
+    <label><span class="field-label">วัน</span><select id="filterDay"><option value="all">จันทร์–ศุกร์</option><option value="0">จันทร์</option><option value="1">อังคาร</option><option value="2">พุธ</option><option value="3">พฤหัสบดี</option><option value="4">ศุกร์</option></select></label>
+    <button class="btn" id="clearFilters">ล้างตัวกรอง</button>
+   </div></div></div>
+  <div class="panel" style="margin-top:17px"><div class="panel-head"><div><h3>ตารางรายสัปดาห์</h3><p>แสดงช่วงเวลาจริงและรหัสรายวิชา</p></div><span id="timetableCount" class="kicker">0 รายการ</span></div>
+  <div class="panel-body"><div id="fullWeek" class="week-board"></div></div></div>
+ </section>
+ <section class="view" id="view-courses" data-title="รายวิชาและหลักสูตร" hidden>
+  <div class="page-header"><div><div class="eyebrow">CURRICULUM / COURSE CODES</div><h2>รายวิชาและหลักสูตร</h2><p>สรุปรหัสวิชาที่ปรากฏใน Draft UAT ยังไม่ใช่ Master หลักสูตรที่รับรอง</p></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>รายวิชาจากรายการสอน</h3><p>รายงานนาทีรวมต่อรายวิชา</p></div></div><div class="panel-body"><div id="courseList"></div></div></div>
+ </section>
+ <section class="view" id="view-workload" data-title="ผู้สอนและภาระงาน" hidden>
+  <div class="page-header"><div><div class="eyebrow">FACULTY / WORKLOAD</div><h2>ผู้สอนและภาระงาน</h2><p>นับชั่วโมงจากเวลาจริง แยกครูหลักและครูร่วมตามรายการสอน</p></div></div>
+  <div class="notice info"><span class="notice-symbol">◷</span><div><strong>หน่วยวัดภาระงาน</strong><p>คำนวณจาก duration_minutes ÷ 60 โดยไม่อนุมานว่าหนึ่งคาบเรียนเท่ากับหนึ่งชั่วโมง และไม่รวมกิจกรรมที่ไม่มีหลักฐานว่าคิดภาระงานสอน</p></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>ภาระงานผู้สอนใน UAT</h3><p>เฉพาะรหัสผู้สอนตัวอย่างที่เพิ่มใน Draft</p></div></div><div class="panel-body"><div id="workloadList"></div></div></div>
+ </section>
+ <section class="view" id="view-venues" data-title="ห้องและสถานที่" hidden>
+  <div class="page-header"><div><div class="eyebrow">FACILITIES / CAPACITY</div><h2>ห้องและสถานที่</h2><p>ติดตามการใช้รหัสสถานที่และตรวจช่วงเวลาที่ชนกัน</p></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>สถานที่ในรายการสอน</h3><p>ความจุสถานที่ยังไม่ดึงจาก Master จริง</p></div></div><div class="panel-body"><div id="venueList"></div></div></div>
+ </section>
+ <section class="view" id="view-cover" data-title="สอนแทนอัจฉริยะ" hidden>
+  <div class="page-header"><div><div class="eyebrow">SMART COVER / CANDIDATE PREVIEW</div><h2>สอนแทนอัจฉริยะ</h2><p>จำลองการตรวจครูว่างตามช่วงเวลา โดยไม่สร้างเหตุการณ์ลาจริงหรืออนุมัติบุคลากร</p></div></div>
+  <div class="notice warn"><span class="notice-symbol">!</span><div><strong>จำลองการเสนอเท่านั้น</strong><p>รายชื่อด้านล่างเป็นรหัสครูที่อยู่ใน Session สมมติ ความว่างไม่ได้ยืนยันคุณสมบัติ ชั่วโมงภาระงาน หรือข้อตกลงโรงเรียน จึงไม่สามารถอนุมัติการสอนแทนจริงจากหน้านี้ได้</p></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>ตรวจผู้ว่างจากตารางจำลอง</h3><p>การตัดสินใจบุคลากรต้องมี Human Approval ในระบบจริง</p></div></div>
+  <div class="panel-body"><div class="field-grid">
+   <label><span class="field-label">ผู้สอนที่ต้องการหาผู้แทน</span><select id="coverTeacher"><option value="">เลือกครูรหัสตัวอย่าง</option></select></label>
+   <label><span class="field-label">วัน</span><select id="coverDay"><option value="0">จันทร์</option><option value="1">อังคาร</option><option value="2">พุธ</option><option value="3">พฤหัสบดี</option><option value="4">ศุกร์</option></select></label>
+   <label><span class="field-label">ช่วงเรียนที่มีผู้สอน</span><select id="coverLesson"><option value="">เลือกรายการสอน</option></select></label>
+  </div><div class="btn-row" style="margin-top:15px"><button class="btn primary" id="findCover">ค้นผู้สอนที่ว่างใน UAT</button></div>
+  <div class="divider"></div><div id="coverResult" class="empty-state"><div class="empty-icon">⇄</div><strong>ยังไม่ได้เลือกช่วงสอน</strong><p>เพิ่มรายการสอนใน Draft ก่อนทดลองตรวจครูว่าง</p></div></div></div>
+ </section>
+ <section class="view" id="view-reports" data-title="รายงานและพิมพ์" hidden>
+  <div class="page-header"><div><div class="eyebrow">REPORTS / A4 PREVIEW</div><h2>รายงานและพิมพ์</h2><p>ตัวอย่างสรุปรายการสอนและภาระงานจาก UAT ไม่มีลายเซ็นหรือข้อมูลรับรองจริง</p></div>
+   <div class="header-actions"><button class="btn primary" id="printBtn">▧ พิมพ์ตัวอย่าง A4</button></div></div>
+  <div class="notice info"><span class="notice-symbol">▧</span><div><strong>สำหรับทดสอบรูปแบบ</strong><p>รายงานนี้ใช้ข้อมูลสมมติใน Session เท่านั้น ไม่ใช่รายงานราชการ ไม่แนบลายเซ็นของผู้บริหาร และยังไม่ผ่านเทียบ Golden PDF</p></div></div>
+  <div class="panel"><div class="panel-head"><div><h3>โรงเรียนเทศบาล ๓ (วัดท่ามะปราง)</h3><p>รายงานทดสอบตารางสอน ภาคเรียน 2 ปีการศึกษา 2569</p></div><span class="kicker">UAT / ไม่รับรอง</span></div>
+   <div class="panel-body"><div id="reportOutput" class="report-box"></div></div></div>
+ </section>
+ <section class="view" id="view-audit" data-title="ประวัติและ Restore" hidden>
+  <div class="page-header"><div><div class="eyebrow">REVISION CONTROL / AUDIT</div><h2>ประวัติและย้อนคืน</h2><p>ทดลองตรวจการแก้ไขและสร้าง Revision ใหม่เมื่อต้องย้อนคืนข้อมูล</p></div></div>
+  <div class="two-col"><div class="panel"><div class="panel-head"><div><h3>ประวัติ Revision</h3><p>บันทึกใน Session ปัจจุบันเท่านั้น</p></div></div><div class="panel-body"><div class="timeline" id="auditEntries"></div></div></div>
+   <div class="stack">
+    <div class="panel"><div class="panel-head"><div><h3>คืนค่าร่างเก่า</h3><p>Restore จะสร้าง Revision ใหม่ ไม่เขียนทับประวัติเดิม</p></div></div><div class="panel-body">
+      <label><span class="field-label">เลือกรุ่น</span><select id="history"><option value="">ยังไม่มีประวัติ</option></select></label>
+      <div class="btn-row" style="margin-top:14px"><button class="btn dark" id="restore" disabled>คืนค่าเป็น Revision ใหม่</button></div>
+      <p id="restoreStatus" class="note-line">ยังไม่มีรายการให้คืนค่า</p>
+    </div></div>
+    <div class="panel"><div class="panel-head"><div><h3>ล้าง Session ทดลอง</h3><p>ไม่เกี่ยวข้องกับฐาน Google Sheets ของโรงเรียน</p></div></div><div class="panel-body">
+      <p class="note-line">ใช้เมื่อจบการทดลองเพื่อเริ่มต้นข้อมูลจำลองใหม่ในแท็บนี้</p>
+      <button class="btn danger" id="resetSession">ล้างข้อมูล UAT ในแท็บนี้</button>
+    </div></div>
+   </div>
+  </div>
+ </section>
+ <section class="view" id="view-settings" data-title="สถานะและสิทธิ์" hidden>
+  <div class="page-header"><div><div class="eyebrow">CONTROL CENTER / RELEASE STATUS</div><h2>ตั้งค่าและสถานะระบบ</h2><p>รายละเอียดการทดสอบ การแยกข้อมูล และขอบเขตการใช้งาน</p></div></div>
+  <div class="two-equal">
+   <div class="panel"><div class="panel-head"><div><h3>เวอร์ชันที่กำลังใช้</h3></div></div><div class="panel-body">
+    <div class="report-line"><span>Frontend</span><strong>V33 / Professional UX</strong></div>
+    <div class="report-line"><span>ต้นแบบฟังก์ชัน</span><strong>Owner V32</strong></div>
+    <div class="report-line"><span>Backend</span><strong>Browser Session UAT</strong></div>
+    <div class="report-line"><span>Google Sheets</span><strong>ไม่ได้เชื่อม</strong></div>
+    <div class="report-line"><span>ตารางสอนจริง</span><strong>ยังไม่เผยแพร่</strong></div>
+    <div class="report-line"><span>Revision ในแท็บนี้</span><strong id="settingsRevision">0</strong></div>
+   </div></div>
+   <div class="panel"><div class="panel-head"><div><h3>ข้อกำหนดข้อมูลและสิทธิ์</h3></div></div><div class="panel-body">
+    <ul class="list-clean">
+      <li>ไม่มีการดึงข้อมูลครูหรือนักเรียนจริงจาก Golden Sheet</li>
+      <li>ข้อมูลจำลองอยู่เฉพาะ Session ของแท็บ ไม่ใช่ Cloud Database</li>
+      <li>ตรวจชนกันของครูหลัก/ครูร่วม ห้อง และสถานที่</li>
+      <li>หน่วยชั่วโมงคำนวณจากนาทีจริงทุกครั้ง</li>
+      <li>สอนแทนจริงต้องยืนยันการลาและได้รับ Human Approval</li>
+      <li>การ Deploy แอปจริงและการประกาศตารางสอนเป็นคนละ Release Gate</li>
+    </ul></div></div>
+  </div>
+  <div class="panel" style="margin-top:17px"><div class="panel-head"><div><h3>เส้นทางระบบจริง</h3><p>ข้อมูลระบบโรงเรียนไม่ควรถูกเปิดผ่าน GitHub Pages สาธารณะ</p></div></div><div class="panel-body">
+   <p class="note-line">เมื่อ Owner Backend ผ่านการทดสอบ RBAC, Save/CAS, Restore และ Readback จึงสามารถเปิดใช้งานสำหรับเจ้าหน้าที่ที่ได้รับอนุญาตได้แยกจากส่วน Public นี้</p>
+   <a class="btn" href="./">เปิดกระดานสาธารณะ →</a>
+  </div></div>
+ </section>
+ <div id="toast" class="toast" role="status" hidden></div>
+</main>
 </div>
-<div class="row"><button type="button" onclick="fillSample()">กรอกรหัสตัวอย่าง</button><button id="add" onclick="addEntry()">เพิ่มรายการใน Draft</button>
-<button id="save" onclick="saveDraft()" disabled>บันทึก Draft ใน UAT Session</button></div>
-<p id="editState" role="status"></p><div id="grid" role="region" aria-label="รายการสอนใน Draft"></div>
-</article>
-<article><h2>ประวัติและการย้อนคืน Draft</h2>
-<p class="muted">Undo/Restore สร้าง Revision ใหม่ ไม่เขียน Revision ย้อนหลังและไม่แก้ Golden</p>
-<div class="row"><select id="history" aria-label="เลือกรุ่นที่ต้องการคืนค่า"><option value="">ยังไม่มีประวัติ</option></select>
-<button id="restore" onclick="restore()" disabled>คืนค่าเป็น Draft รุ่นใหม่</button></div>
-<p id="message" role="status" class="muted"></p>
-</article>
-<article><h2>สถานะการเผยแพร่</h2>
-<p>UAT ในเบราว์เซอร์เท่านั้น · ไม่มีการอ่าน/เขียนข้อมูลบุคลากรใน Cloud · ตารางสอนจริงต้องใช้ Owner WebApp ที่ตรวจสิทธิ์ฝั่ง Server</p>
-</article></main><script src="uat-bridge.js"></script>
-<script>
-let current=null,pending=false,items=[],working=[],dirty=false;
-function fillSample(){['cl','co','te','ct','ve','per','st','en'].forEach((id,i)=>{el(id).value=['CLASS_QA1','ENG_QA','TEACHER_QA','','ROOM_QA1','P01','08:00','08:50'][i]});el('day').value='0';el('editState').textContent='เตรียมรหัสสมมติแล้ว กด เพิ่มรายการ';}
-const el=id=>document.getElementById(id);
-const val=id=>String(el(id).value||'').trim();
-const mins=s=>/^([01]\d|2[0-3]):[0-5]\d$/.test(s)?Number(s.slice(0,2))*60+Number(s.slice(3)):NaN;
-function refreshGrid(){
- const pane=el('grid');pane.replaceChildren();
- const t=document.createElement('table');t.setAttribute('aria-label','ตาราง Draft');
- const head=document.createElement('tr');
- for(const h of ['ห้อง','วิชา','ครูหลัก/ร่วม','วัน','ช่วง','เวลา','นาที','จัดการ']){
-   const cell=document.createElement('th');cell.textContent=h;head.append(cell);
- }
- t.append(head);
- working.forEach((r,i)=>{
-   const tr=document.createElement('tr');
-   const fields=[r.classRef,r.courseRef,String(r.teacherRef||'')+(r.coTeacherRef?' / '+r.coTeacherRef:''),
-    ['จ','อ','พ','พฤ','ศ'][r.weekday]||'? ',r.periodCode,r.startTime+'–'+r.endTime,String(r.duration_minutes)];
-   fields.forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.append(td)});
-   const td=document.createElement('td'),btn=document.createElement('button');
-   btn.textContent='ลบ';btn.onclick=()=>{working.splice(i,1);dirty=true;refreshGrid();};td.append(btn);tr.append(td);t.append(tr);
- });
- pane.append(t);
- el('save').disabled=pending||!dirty||!current||!current.initialized||
-   current.mode!=='DRAFT_WRITE_ENABLED'||!current.sourceHash||!current.scheduleVersion;
- el('editState').textContent=working.length+' รายการ · '+(dirty?'มีการแก้ไขที่ยังไม่บันทึก':'ไม่มีการแก้ไข')+
-  (!current?.initialized?' · ยังไม่มี SourceVersion ของ Draft':'')+
-  (current?.mode!=='DRAFT_WRITE_ENABLED'?' · การบันทึกฐานจริงยังล็อก':'');
-}
-function validRow(x){
- if(!/^[A-Za-z0-9_.:-]{1,100}$/.test(x.classRef)||
-    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.courseRef)||
-    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.teacherRef)||
-    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.venueRef)||
-    (x.coTeacherRef&&!/^[A-Za-z0-9_.:-]{1,100}$/.test(x.coTeacherRef))||
-    (x.coTeacherRef&&x.coTeacherRef===x.teacherRef)||
-    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.periodCode)||
-    !Number.isInteger(x.weekday)||x.weekday<0||x.weekday>4||
-    !Number.isInteger(x.duration_minutes)||x.duration_minutes<=0||
-    x.duration_minutes>480)throw Error('กรุณาตรวจรหัสอ้างอิงและช่วงเวลาให้ถูกต้อง');
-}
-function conflicts(newRow){
- const st=mins(newRow.startTime),en=mins(newRow.endTime);
- return working.some(r=>{
-  if(r.weekday!==newRow.weekday||mins(r.startTime)>=en||mins(r.endTime)<=st)return false;
-  const ta=[r.teacherRef,r.coTeacherRef].filter(Boolean),
-    tb=[newRow.teacherRef,newRow.coTeacherRef].filter(Boolean);
-  return r.classRef===newRow.classRef||r.venueRef===newRow.venueRef||
-   ta.some(ref=>tb.includes(ref));
- });
-}
-function addEntry(){
- try{
-  if(pending)throw Error('ระบบกำลังทำงาน');
-  if(working.length>=600)throw Error('Draft เกิน 600 รายการ');
-  const st=val('st'),en=val('en'),a=mins(st),b=mins(en);
-  if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a)throw Error('ช่วงเวลาไม่ถูกต้อง');
-  const x={assignmentId:'DRAFT-'+crypto.randomUUID(),classRef:val('cl'),courseRef:val('co'),
-   teacherRef:val('te'),coTeacherRef:val('ct'),venueRef:val('ve'),
-   weekday:Number(val('day')),periodCode:val('per'),startTime:st,endTime:en,
-   duration_minutes:b-a};
-  validRow(x);
-  if(conflicts(x))throw Error('รายการใหม่ชนกับห้อง ครูหลัก/ครูร่วม หรือสถานที่ในช่วงเดียวกัน');
-  working.push(x);dirty=true;refreshGrid();
- }catch(e){el('editState').textContent=String(e.message||e)}
-}
-function saveDraft(){
- if(pending||!current||!current.initialized||current.mode!=='DRAFT_WRITE_ENABLED')return;
- if(!dirty)return;
- // Save is an explicit Admin action; CAS and server audit protect each revision.
- pending=true;el('save').disabled=true;el('refresh').disabled=true;
- const d=JSON.parse(JSON.stringify(current.draft));
- d.revision=current.revision+1;d.rows=working.map(x=>({...x}));
- const cmd={requestId:'T3TT-SAVE-'+crypto.randomUUID(),expectedRevision:current.revision,
-  expectedSourceHash:current.sourceHash,expectedScheduleVersion:current.scheduleVersion,draft:d};
- google.script.run.withSuccessHandler(r=>{
-   pending=false;dirty=false;el('refresh').disabled=false;
-   el('message').textContent='UAT Session บันทึก Revision '+r.revision+' แล้ว กรุณาตรวจอ่านกลับ';
-   refresh();
- }).withFailureHandler(e=>{
-   pending=false;el('refresh').disabled=false;
-   el('editState').textContent='UAT Session ยังไม่ยืนยันการบันทึก: '+String(e?.message||e)+
-    ' · ข้อมูลที่แก้ยังอยู่ โปรดอ่าน Revision ล่าสุดก่อนลองอีกครั้ง';
-   refreshGrid();
- }).T3TT_ownerProdDraftSaveV1(cmd);
-}
-function startAdminDraft(){
- if(pending||!current||current.initialized||
-    current.mode!=='PROD_WRITE_LOCKED_PENDING_RELEASE')return;
- // One explicit Admin click is sufficient; server records actor and audit.
- pending=true;el('startAdmin').disabled=true;el('refresh').disabled=true;
- google.script.run.withSuccessHandler(r=>{
-   pending=false;el('refresh').disabled=false;
-   el('message').textContent='เริ่มทำงาน Draft ของ Admin ได้แล้ว (ยังไม่ประกาศใช้)';
-   refresh();
- }).withFailureHandler(e=>{
-   pending=false;el('refresh').disabled=false;
-   el('message').textContent='ยังไม่ได้เริ่ม Draft: '+String(e?.message||e);
-   refresh();
- }).T3TT_ownerAdminStartWorkingDraftV1({
-   requestId:'T3TT-ADMIN-'+crypto.randomUUID(),
-   intent:'START_OWNER_UNPUBLISHED_DRAFT'
- });
-}
-function err(e){pending=false;el('refresh').disabled=false;el('restore').disabled=true;
- el('state').textContent='ตรวจไม่สำเร็จ: '+(e&&e.message||e);
- el('message').textContent='ไม่ได้บันทึกหรือเปลี่ยนข้อมูล';}
-function refresh(){
- if(pending)return;pending=true;el('refresh').disabled=true;
- google.script.run.withSuccessHandler(r=>{
-  if(dirty&&!confirm('พบการแก้ไขที่ยังไม่ได้บันทึก จะอ่านจาก UAT Session และแทนที่ร่างบนหน้าจอหรือไม่?')){
-    pending=false;el('refresh').disabled=false;return;
-  }
-  current=r;working=Array.isArray(r.draft?.rows)?r.draft.rows.map(x=>({...x})):[];
-  el('startAdmin').disabled=!(r.revision===0&&!r.initialized&&
-     r.mode==='PROD_WRITE_LOCKED_PENDING_RELEASE');
-  dirty=false;pending=false;el('refresh').disabled=false;refreshGrid();
-  el('state').textContent='ภาคเรียน '+r.term+' · Revision '+r.revision+
-    ' · โหมด '+r.mode+' · '+(r.initialized?'มีฐาน Draft แล้ว':'Draft ว่าง ยังไม่ตั้งต้นรุ่น')+
-    (r.scheduleVersion==='ADMIN_WORKING_V1_2569_T2'?' · WORKING DRAFT — ข้อมูลยังไม่รับรอง':'');
-  google.script.run.withSuccessHandler(h=>{
-   items=(h.history||[]).filter(x=>x.revision<r.revision);
-   const s=el('history');s.replaceChildren(new Option('เลือกรุ่นที่ผ่าน Audit', ''));
-   items.forEach(x=>s.add(new Option('Revision '+x.revision+' · '+x.at,x.txnId)));
-   el('restore').disabled=!(r.initialized&&r.mode==='DRAFT_WRITE_ENABLED'&&items.length);
-  }).withFailureHandler(err).T3TT_ownerProdDraftHistoryV1();
- }).withFailureHandler(err).T3TT_ownerProdDraftReadV1();
-}
-function restore(){
- const target=el('history').value;
- if(!current||pending||current.mode!=='DRAFT_WRITE_ENABLED'||!items.some(x=>x.txnId===target))return;
- if(!confirm('ยืนยันคืนค่า Revision เดิมเป็น Draft รุ่นใหม่? ไม่มีการเปลี่ยนตารางที่ประกาศใช้'))return;
- pending=true;el('restore').disabled=true;el('refresh').disabled=true;
- google.script.run.withSuccessHandler(r=>{
-  pending=false;el('message').textContent='คืนค่าเป็น Revision '+r.revision+' แล้ว · '+(r.idempotent?'คำขอซ้ำ':'บันทึกใหม่');
-  refresh();
- }).withFailureHandler(e=>{pending=false;el('refresh').disabled=false;err(e);
-  el('message').textContent='ไม่ได้ยืนยันผลสำเร็จ โปรดโหลด Revision ล่าสุดก่อนสั่งใหม่';})
- .T3TT_ownerProdDraftRestoreV1({
-  requestId:'T3TT-RESTORE-'+crypto.randomUUID(),
-  targetTxnId:target,expectedRevision:current.revision,
-  expectedSourceHash:current.sourceHash,expectedScheduleVersion:current.scheduleVersion});
-}
-refresh();
-</script></body></html>
+</div>
+<script src="./uat-bridge.js"></script>
+<script src="./t3tt-pro.js"></script>
+</body>
+</html>
