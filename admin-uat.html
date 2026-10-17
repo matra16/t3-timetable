@@ -1,0 +1,192 @@
+<!doctype html><html lang="th"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>T3 Timetable — Admin UAT ทดลองด้วยข้อมูลจำลอง</title>
+<style>body{font:16px/1.55 "Sarabun",Tahoma,sans-serif;background:#f3f6fb;color:#1c344a;margin:0}
+header{background:#153a58;color:#fff;padding:20px}main{max-width:820px;margin:20px auto;padding:0 16px}
+article{background:white;border:1px solid #dce5ed;border-radius:12px;padding:18px;margin:15px 0}
+button,select{font:inherit;padding:9px;border:1px solid #a7b8c9;border-radius:7px}
+button:disabled{opacity:.45}.muted{color:#52697d}.row{display:flex;gap:10px;flex-wrap:wrap}
+.bad{color:#b24832}h1{font-size:24px}h2{font-size:19px}</style></head><body>
+<header><h1>T3 TIMETABLE · ทดลอง Admin Draft ภาคเรียน 2/2569</h1>
+<div>UAT แบบจำลองในเบราว์เซอร์เท่านั้น · ไม่เชื่อม Google Sheets · ไม่ใช่ตารางสอนจริง</div></header>
+<main>
+<article style="background:#fff8e1;border-color:#ddba62"><strong>โหมดทดสอบเท่านั้น</strong> ใช้รหัสสมมติ เช่น CLASS_QA1, ENG_QA, TEACHER_QA เท่านั้น ห้ามกรอกข้อมูลครูหรือนักเรียนจริง ไม่ส่งข้อมูลออกจากเบราว์เซอร์ และการบันทึกเป็นเพียง Session UAT ไม่ใช่ฐานโรงเรียน <a href="./">กลับหน้า Public</a></article>
+<article><h2>สถานะ UAT Session บนเบราว์เซอร์</h2>
+<button id="refresh" onclick="refresh()">อ่านสถานะล่าสุด</button>
+<button id="startAdmin" onclick="startAdminDraft()" disabled>เริ่มทำงาน Draft สำหรับ Admin</button>
+<p id="state" role="status">กำลังตรวจสิทธิ์และ Revision...</p>
+<p class="muted">ข้อมูลสมมติจะอยู่ใน Session ของแท็บนี้เท่านั้น และไม่ดึงจาก Golden Sheet หรือ Operational Workbook</p>
+</article>
+<article><h2>จัดรายการสอนภาคเรียน 2/2569 — ฉบับร่าง</h2>
+<p class="muted">เพิ่มรายการใหม่จากข้อมูลที่ตรวจรับแล้วเท่านั้น ไม่ยกข้อมูลภาคเรียนก่อนเป็นตารางจริงอัตโนมัติ
+เวลาเริ่ม–สิ้นสุดและนาทีเป็นข้อมูลจริง ไม่ถือว่า 1 ช่วงเรียนเท่ากับ 1 ชั่วโมง</p>
+<div class="row">
+<label>ห้องเรียนรหัส <input id="cl" placeholder="ClassRef"></label>
+<label>รายวิชารหัส <input id="co" placeholder="CourseRef"></label>
+<label>ครูหลักรหัส <input id="te" placeholder="TeacherRef"></label>
+<label>ครูร่วมรหัส (ถ้ามี) <input id="ct" placeholder="CoTeacherRef"></label>
+<label>สถานที่รหัส <input id="ve" placeholder="VenueRef"></label>
+<label>วัน <select id="day"><option value="0">จันทร์</option><option value="1">อังคาร</option>
+<option value="2">พุธ</option><option value="3">พฤหัสบดี</option><option value="4">ศุกร์</option></select></label>
+<label>ช่วงเรียนรหัส <input id="per" placeholder="P01"></label>
+<label>เวลาเริ่ม <input type="time" id="st"></label>
+<label>เวลาสิ้นสุด <input type="time" id="en"></label>
+</div>
+<div class="row"><button type="button" onclick="fillSample()">กรอกรหัสตัวอย่าง</button><button id="add" onclick="addEntry()">เพิ่มรายการใน Draft</button>
+<button id="save" onclick="saveDraft()" disabled>บันทึก Draft ใน UAT Session</button></div>
+<p id="editState" role="status"></p><div id="grid" role="region" aria-label="รายการสอนใน Draft"></div>
+</article>
+<article><h2>ประวัติและการย้อนคืน Draft</h2>
+<p class="muted">Undo/Restore สร้าง Revision ใหม่ ไม่เขียน Revision ย้อนหลังและไม่แก้ Golden</p>
+<div class="row"><select id="history" aria-label="เลือกรุ่นที่ต้องการคืนค่า"><option value="">ยังไม่มีประวัติ</option></select>
+<button id="restore" onclick="restore()" disabled>คืนค่าเป็น Draft รุ่นใหม่</button></div>
+<p id="message" role="status" class="muted"></p>
+</article>
+<article><h2>สถานะการเผยแพร่</h2>
+<p>UAT ในเบราว์เซอร์เท่านั้น · ไม่มีการอ่าน/เขียนข้อมูลบุคลากรใน Cloud · ตารางสอนจริงต้องใช้ Owner WebApp ที่ตรวจสิทธิ์ฝั่ง Server</p>
+</article></main><script src="uat-bridge.js"></script>
+<script>
+let current=null,pending=false,items=[],working=[],dirty=false;
+function fillSample(){['cl','co','te','ct','ve','per','st','en'].forEach((id,i)=>{el(id).value=['CLASS_QA1','ENG_QA','TEACHER_QA','','ROOM_QA1','P01','08:00','08:50'][i]});el('day').value='0';el('editState').textContent='เตรียมรหัสสมมติแล้ว กด เพิ่มรายการ';}
+const el=id=>document.getElementById(id);
+const val=id=>String(el(id).value||'').trim();
+const mins=s=>/^([01]\d|2[0-3]):[0-5]\d$/.test(s)?Number(s.slice(0,2))*60+Number(s.slice(3)):NaN;
+function refreshGrid(){
+ const pane=el('grid');pane.replaceChildren();
+ const t=document.createElement('table');t.setAttribute('aria-label','ตาราง Draft');
+ const head=document.createElement('tr');
+ for(const h of ['ห้อง','วิชา','ครูหลัก/ร่วม','วัน','ช่วง','เวลา','นาที','จัดการ']){
+   const cell=document.createElement('th');cell.textContent=h;head.append(cell);
+ }
+ t.append(head);
+ working.forEach((r,i)=>{
+   const tr=document.createElement('tr');
+   const fields=[r.classRef,r.courseRef,String(r.teacherRef||'')+(r.coTeacherRef?' / '+r.coTeacherRef:''),
+    ['จ','อ','พ','พฤ','ศ'][r.weekday]||'? ',r.periodCode,r.startTime+'–'+r.endTime,String(r.duration_minutes)];
+   fields.forEach(v=>{const td=document.createElement('td');td.textContent=String(v);tr.append(td)});
+   const td=document.createElement('td'),btn=document.createElement('button');
+   btn.textContent='ลบ';btn.onclick=()=>{working.splice(i,1);dirty=true;refreshGrid();};td.append(btn);tr.append(td);t.append(tr);
+ });
+ pane.append(t);
+ el('save').disabled=pending||!dirty||!current||!current.initialized||
+   current.mode!=='DRAFT_WRITE_ENABLED'||!current.sourceHash||!current.scheduleVersion;
+ el('editState').textContent=working.length+' รายการ · '+(dirty?'มีการแก้ไขที่ยังไม่บันทึก':'ไม่มีการแก้ไข')+
+  (!current?.initialized?' · ยังไม่มี SourceVersion ของ Draft':'')+
+  (current?.mode!=='DRAFT_WRITE_ENABLED'?' · การบันทึกฐานจริงยังล็อก':'');
+}
+function validRow(x){
+ if(!/^[A-Za-z0-9_.:-]{1,100}$/.test(x.classRef)||
+    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.courseRef)||
+    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.teacherRef)||
+    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.venueRef)||
+    (x.coTeacherRef&&!/^[A-Za-z0-9_.:-]{1,100}$/.test(x.coTeacherRef))||
+    (x.coTeacherRef&&x.coTeacherRef===x.teacherRef)||
+    !/^[A-Za-z0-9_.:-]{1,100}$/.test(x.periodCode)||
+    !Number.isInteger(x.weekday)||x.weekday<0||x.weekday>4||
+    !Number.isInteger(x.duration_minutes)||x.duration_minutes<=0||
+    x.duration_minutes>480)throw Error('กรุณาตรวจรหัสอ้างอิงและช่วงเวลาให้ถูกต้อง');
+}
+function conflicts(newRow){
+ const st=mins(newRow.startTime),en=mins(newRow.endTime);
+ return working.some(r=>{
+  if(r.weekday!==newRow.weekday||mins(r.startTime)>=en||mins(r.endTime)<=st)return false;
+  const ta=[r.teacherRef,r.coTeacherRef].filter(Boolean),
+    tb=[newRow.teacherRef,newRow.coTeacherRef].filter(Boolean);
+  return r.classRef===newRow.classRef||r.venueRef===newRow.venueRef||
+   ta.some(ref=>tb.includes(ref));
+ });
+}
+function addEntry(){
+ try{
+  if(pending)throw Error('ระบบกำลังทำงาน');
+  if(working.length>=600)throw Error('Draft เกิน 600 รายการ');
+  const st=val('st'),en=val('en'),a=mins(st),b=mins(en);
+  if(!Number.isFinite(a)||!Number.isFinite(b)||b<=a)throw Error('ช่วงเวลาไม่ถูกต้อง');
+  const x={assignmentId:'DRAFT-'+crypto.randomUUID(),classRef:val('cl'),courseRef:val('co'),
+   teacherRef:val('te'),coTeacherRef:val('ct'),venueRef:val('ve'),
+   weekday:Number(val('day')),periodCode:val('per'),startTime:st,endTime:en,
+   duration_minutes:b-a};
+  validRow(x);
+  if(conflicts(x))throw Error('รายการใหม่ชนกับห้อง ครูหลัก/ครูร่วม หรือสถานที่ในช่วงเดียวกัน');
+  working.push(x);dirty=true;refreshGrid();
+ }catch(e){el('editState').textContent=String(e.message||e)}
+}
+function saveDraft(){
+ if(pending||!current||!current.initialized||current.mode!=='DRAFT_WRITE_ENABLED')return;
+ if(!dirty)return;
+ // Save is an explicit Admin action; CAS and server audit protect each revision.
+ pending=true;el('save').disabled=true;el('refresh').disabled=true;
+ const d=JSON.parse(JSON.stringify(current.draft));
+ d.revision=current.revision+1;d.rows=working.map(x=>({...x}));
+ const cmd={requestId:'T3TT-SAVE-'+crypto.randomUUID(),expectedRevision:current.revision,
+  expectedSourceHash:current.sourceHash,expectedScheduleVersion:current.scheduleVersion,draft:d};
+ google.script.run.withSuccessHandler(r=>{
+   pending=false;dirty=false;el('refresh').disabled=false;
+   el('message').textContent='UAT Session บันทึก Revision '+r.revision+' แล้ว กรุณาตรวจอ่านกลับ';
+   refresh();
+ }).withFailureHandler(e=>{
+   pending=false;el('refresh').disabled=false;
+   el('editState').textContent='UAT Session ยังไม่ยืนยันการบันทึก: '+String(e?.message||e)+
+    ' · ข้อมูลที่แก้ยังอยู่ โปรดอ่าน Revision ล่าสุดก่อนลองอีกครั้ง';
+   refreshGrid();
+ }).T3TT_ownerProdDraftSaveV1(cmd);
+}
+function startAdminDraft(){
+ if(pending||!current||current.initialized||
+    current.mode!=='PROD_WRITE_LOCKED_PENDING_RELEASE')return;
+ // One explicit Admin click is sufficient; server records actor and audit.
+ pending=true;el('startAdmin').disabled=true;el('refresh').disabled=true;
+ google.script.run.withSuccessHandler(r=>{
+   pending=false;el('refresh').disabled=false;
+   el('message').textContent='เริ่มทำงาน Draft ของ Admin ได้แล้ว (ยังไม่ประกาศใช้)';
+   refresh();
+ }).withFailureHandler(e=>{
+   pending=false;el('refresh').disabled=false;
+   el('message').textContent='ยังไม่ได้เริ่ม Draft: '+String(e?.message||e);
+   refresh();
+ }).T3TT_ownerAdminStartWorkingDraftV1({
+   requestId:'T3TT-ADMIN-'+crypto.randomUUID(),
+   intent:'START_OWNER_UNPUBLISHED_DRAFT'
+ });
+}
+function err(e){pending=false;el('refresh').disabled=false;el('restore').disabled=true;
+ el('state').textContent='ตรวจไม่สำเร็จ: '+(e&&e.message||e);
+ el('message').textContent='ไม่ได้บันทึกหรือเปลี่ยนข้อมูล';}
+function refresh(){
+ if(pending)return;pending=true;el('refresh').disabled=true;
+ google.script.run.withSuccessHandler(r=>{
+  if(dirty&&!confirm('พบการแก้ไขที่ยังไม่ได้บันทึก จะอ่านจาก UAT Session และแทนที่ร่างบนหน้าจอหรือไม่?')){
+    pending=false;el('refresh').disabled=false;return;
+  }
+  current=r;working=Array.isArray(r.draft?.rows)?r.draft.rows.map(x=>({...x})):[];
+  el('startAdmin').disabled=!(r.revision===0&&!r.initialized&&
+     r.mode==='PROD_WRITE_LOCKED_PENDING_RELEASE');
+  dirty=false;pending=false;el('refresh').disabled=false;refreshGrid();
+  el('state').textContent='ภาคเรียน '+r.term+' · Revision '+r.revision+
+    ' · โหมด '+r.mode+' · '+(r.initialized?'มีฐาน Draft แล้ว':'Draft ว่าง ยังไม่ตั้งต้นรุ่น')+
+    (r.scheduleVersion==='ADMIN_WORKING_V1_2569_T2'?' · WORKING DRAFT — ข้อมูลยังไม่รับรอง':'');
+  google.script.run.withSuccessHandler(h=>{
+   items=(h.history||[]).filter(x=>x.revision<r.revision);
+   const s=el('history');s.replaceChildren(new Option('เลือกรุ่นที่ผ่าน Audit', ''));
+   items.forEach(x=>s.add(new Option('Revision '+x.revision+' · '+x.at,x.txnId)));
+   el('restore').disabled=!(r.initialized&&r.mode==='DRAFT_WRITE_ENABLED'&&items.length);
+  }).withFailureHandler(err).T3TT_ownerProdDraftHistoryV1();
+ }).withFailureHandler(err).T3TT_ownerProdDraftReadV1();
+}
+function restore(){
+ const target=el('history').value;
+ if(!current||pending||current.mode!=='DRAFT_WRITE_ENABLED'||!items.some(x=>x.txnId===target))return;
+ if(!confirm('ยืนยันคืนค่า Revision เดิมเป็น Draft รุ่นใหม่? ไม่มีการเปลี่ยนตารางที่ประกาศใช้'))return;
+ pending=true;el('restore').disabled=true;el('refresh').disabled=true;
+ google.script.run.withSuccessHandler(r=>{
+  pending=false;el('message').textContent='คืนค่าเป็น Revision '+r.revision+' แล้ว · '+(r.idempotent?'คำขอซ้ำ':'บันทึกใหม่');
+  refresh();
+ }).withFailureHandler(e=>{pending=false;el('refresh').disabled=false;err(e);
+  el('message').textContent='ไม่ได้ยืนยันผลสำเร็จ โปรดโหลด Revision ล่าสุดก่อนสั่งใหม่';})
+ .T3TT_ownerProdDraftRestoreV1({
+  requestId:'T3TT-RESTORE-'+crypto.randomUUID(),
+  targetTxnId:target,expectedRevision:current.revision,
+  expectedSourceHash:current.sourceHash,expectedScheduleVersion:current.scheduleVersion});
+}
+refresh();
+</script></body></html>
