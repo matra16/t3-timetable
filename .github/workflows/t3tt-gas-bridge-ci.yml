@@ -1,0 +1,22 @@
+name: T3TT GAS Bridge Local CI
+on:
+  pull_request:
+    paths:
+      - 'qa/gas-browser-bridge/**'
+      - '.github/workflows/t3tt-gas-bridge-ci.yml'
+  workflow_dispatch:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify extension source syntax
+        run: node --check qa/gas-browser-bridge/popup.js
+      - name: Run browser bridge local structural tests
+        run: node --test qa/gas-browser-bridge/bridge.test.cjs
