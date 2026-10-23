@@ -1,0 +1,12 @@
+'use strict';
+const test=require('node:test');
+const assert=require('node:assert/strict');
+const fs=require('node:fs');
+const path=require('node:path');
+const base=__dirname;
+const manifest=JSON.parse(fs.readFileSync(path.join(base,'manifest.json'),'utf8'));
+const popup=fs.readFileSync(path.join(base,'popup.js'),'utf8');
+test('MV3 and least permissions',()=>{assert.equal(manifest.manifest_version,3);assert.deepEqual(manifest.permissions,['activeTab','scripting']);assert.equal(manifest.action.default_popup,'popup.html');assert.equal(manifest.host_permissions,undefined);});
+test('no privileged debugger/cookies/tabs or web requests',()=>{assert.doesNotMatch(popup,/chrome\.debugger|chrome\.cookies|chrome\.storage|fetch\(|XMLHttpRequest/);assert.doesNotMatch(JSON.stringify(manifest.permissions),/debugger|cookies/);});
+test('real owner source pinned SHA and fail-closed origin',()=>{assert.match(popup,/fe3742293e2b296b24d512bb29568f0ea09ed2c820ea61b35240c75ff1e264f9/);assert.match(popup,/x\.hostname==='script\.google\.com'/);assert.match(popup,/pageTitle/);});
+test('does not claim write or public deploy',()=>{assert.match(popup,/cloudSourceSaved:false/);assert.match(popup,/publicDeployed:false/);assert.doesNotMatch(popup,/setValue\(|\.click\(\).*save/i);});
