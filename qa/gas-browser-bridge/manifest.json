@@ -1,0 +1,14 @@
+{
+  "manifest_version": 3,
+  "name": "T3 GAS Browser Bridge (TEMP only)",
+  "version": "0.2.0",
+  "description": "School owner confirmed, SHA-bound write only to the isolated Hello World TEMP editor. No deployment, secrets, or background access.",
+  "permissions": [
+    "activeTab",
+    "scripting"
+  ],
+  "action": {
+    "default_title": "T3 GAS Browser Bridge",
+    "default_popup": "popup.html"
+  }
+}

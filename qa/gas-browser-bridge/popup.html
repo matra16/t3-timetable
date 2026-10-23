@@ -1,0 +1,10 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>T3 GAS Browser Bridge</title>
+<style>body{font:13px system-ui,sans-serif;background:#f7f9fc;color:#172132;margin:0;padding:16px;width:380px}h1{font-size:17px;margin:0 0 6px}p{line-height:1.4}.buttons{display:flex;gap:7px;flex-wrap:wrap}button{padding:8px 10px;cursor:pointer;border:1px solid #bbc7d5;border-radius:6px;background:white}button:disabled{opacity:.45}pre{white-space:pre-wrap;word-break:break-word;border:1px solid #d0d8e4;background:#fff;border-radius:7px;padding:10px;font:11px ui-monospace,monospace;max-height:285px;overflow:auto}.note{color:#586579;font-size:11px}label{font-size:12px}</style></head>
+<body><h1>T3 GAS Browser Bridge</h1><p class="note">Only for isolated T3TT Hello World TEMP on school Chrome Profile13. No deployment/Google API.</p>
+<div class="buttons"><button id="inspect">Inspect tab</button><button id="probe">Probe Monaco</button></div>
+<p><label for="source">Select approved Demo Source Code_demo.gs (SHA checked):</label><input type="file" accept=".gs,.txt,text/plain" id="source"></p>
+<p><label><input type="checkbox" id="ownerVerified"> School Google account matra.y@tamaprang.ac.th visually verified</label></p>
+<div class="buttons"><button id="stage" disabled>Write TEMP editor (unsaved)</button><button id="verifyModel" disabled>Verify editor source</button></div>
+<pre id="status" role="status">No operation performed.</pre>
+<script src="popup.js"></script><script src="popup-probe.js"></script><script src="popup-writer.js"></script></body></html>

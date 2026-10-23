@@ -1,0 +1,20 @@
+name: T3TT Hello World Source QA
+on:
+  pull_request:
+    paths:
+      - 'qa/hello-world/**'
+      - '.github/workflows/t3tt-hello-world-qa.yml'
+  workflow_dispatch:
+jobs:
+  verify-source:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Verify immutable Demo source (no cloud deploy)
+        run: node --test qa/hello-world/test.cjs
