@@ -1,0 +1,27 @@
+name: T3TT Native V2 R13 synthetic QA
+on:
+  pull_request:
+    paths:
+      - 'stage/native-v2-r13/**'
+      - 'stage/native-v2-r16/**'
+      - '.github/workflows/t3tt-r13-native-qa.yml'
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  unit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Static syntax
+        run: node --check stage/native-v2-r13/NativeV2DraftAdapter.js
+      - name: Synthetic unit tests
+        run: node --test stage/native-v2-r13/tests/adapter.test.cjs
+      - name: Indexed engine syntax
+        run: node --check stage/native-v2-r16/R16_IndexedConstraintEngine.js
+      - name: Indexed engine synthetic tests
+        run: node --test stage/native-v2-r16/R16_IndexedConstraintEngine.test.cjs

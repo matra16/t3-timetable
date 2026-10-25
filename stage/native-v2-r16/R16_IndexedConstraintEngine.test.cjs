@@ -1,0 +1,35 @@
+'use strict';
+const test=require('node:test'),assert=require('node:assert/strict'),{validateIndexed}=require('./R16_IndexedConstraintEngine.js');
+const base=(p={})=>({eventId:'E1',date:'2026-10-26',day:'จันทร์',classGroupId:'P1',courseId:'EN101',roomId:'R1',startMinute:510,endMinute:570,timeProfile:'60MIN',status:'DRAFT',...p});
+const team=(eventId='E1',teacherId='T1',role='LEAD')=>({eventId,teacherId,role});
+const codes=(e,t)=>validateIndexed(e,t).issues.map(x=>x.code);
+test('single valid event',()=>assert.deepEqual(codes([base()],[team()]),[]));
+test('valid 50 min',()=>assert.deepEqual(codes([base({endMinute:560,timeProfile:'50MIN'})],[team()]),[]));
+test('valid 15 min',()=>assert.deepEqual(codes([base({endMinute:525,timeProfile:'ACTIVITY15'})],[team()]),[]));
+test('wrong duration',()=>assert.ok(codes([base({endMinute:560})],[team()]).includes('EVENT_INVALID')));
+test('missing room',()=>assert.ok(codes([base({roomId:''})],[team()]).includes('ROOM_UNVERIFIED')));
+test('formula injection',()=>assert.ok(codes([base({courseId:'=IMPORTDATA(1)'})],[team()]).includes('EVENT_INVALID')));
+test('wrong weekday',()=>assert.ok(codes([base({day:'อังคาร'})],[team()]).includes('EVENT_INVALID')));
+test('impossible date',()=>assert.ok(codes([base({date:'2026-02-30'})],[team()]).includes('EVENT_INVALID')));
+test('duplicate event',()=>assert.ok(codes([base(),base()],[team()]).includes('EVENT_DUPLICATE')));
+test('overlapping same class',()=>assert.ok(codes([base(),base({eventId:'E2',roomId:'R2',startMinute:540,endMinute:600})],[team(),team('E2','T2')]).includes('CLASS_TIME_CONFLICT')));
+test('overlapping same room',()=>assert.ok(codes([base(),base({eventId:'E2',classGroupId:'P2',startMinute:540,endMinute:600})],[team(),team('E2','T2')]).includes('ROOM_TIME_CONFLICT')));
+test('crossclass co-teacher overlap',()=>assert.ok(codes([base(),base({eventId:'E2',classGroupId:'P2',roomId:'R2',startMinute:540,endMinute:600})],[team(),team('E1','T3','CO'),team('E2','T3')]).includes('TEACHER_TIME_CONFLICT')));
+test('back-to-back no conflict',()=>assert.deepEqual(codes([base(),base({eventId:'E2',startMinute:570,endMinute:630})],[team(),team('E2')]),[]));
+test('five members supported',()=>assert.deepEqual(codes([base()],[team(),...Array.from({length:4},(_,i)=>team('E1','T'+(i+2),'CO'))]),[]));
+test('six members rejected',()=>assert.ok(codes([base()],[team(),...Array.from({length:5},(_,i)=>team('E1','T'+(i+2),'CO'))]).includes('TEAM_SIZE_OR_ROLE')));
+test('two lead rejected',()=>assert.ok(codes([base()],[team(),team('E1','T2')]).includes('TEAM_SIZE_OR_ROLE')));
+test('duplicate team rejected',()=>assert.ok(codes([base()],[team(),team()]).includes('TEAM_DUPLICATE')));
+test('orphan team rejected',()=>assert.ok(codes([base()],[team(),team('E404','T2')]).includes('TEAM_ORPHAN')));
+test('cancelled ignores collision',()=>assert.ok(!codes([base({status:'CANCELLED'}),base({eventId:'E2'})],[team(),team('E2','T2')]).includes('CLASS_TIME_CONFLICT')));
+test('no production permission',()=>assert.equal(validateIndexed([base()],[team()]).publishable,false));
+test('huge input is bounded',()=>assert.throws(()=>validateIndexed(Array(5001).fill(base()),[])));
+test('invalid team role',()=>assert.ok(codes([base()],[team('E1','T1','ADMIN')]).includes('TEAM_INVALID')));
+test('wrong time interval',()=>assert.ok(codes([base({startMinute:570,endMinute:510})],[team()]).includes('EVENT_INVALID')));
+test('empty inputs pass but publish false',()=>{const x=validateIndexed([],[]);assert.equal(x.publishable,false);assert.equal(x.checked.events,0)});
+test('480 synthetic events zero overlaps',()=>{
+ const times=[510,570,630,750,810,870],dates=['2026-10-26','2026-10-27','2026-10-28','2026-10-29','2026-10-30'],days=['จันทร์','อังคาร','พุธ','พฤหัสบดี','ศุกร์'];let events=[],teams=[];
+ for(let d=0;d<5;d++)for(let c=0;c<16;c++)for(let p=0;p<6;p++){const id='E'+d+'_'+c+'_'+p;events.push(base({eventId:id,date:dates[d],day:days[d],classGroupId:'P'+c,courseId:'C'+p,roomId:'R'+c,startMinute:times[p],endMinute:times[p]+60}));teams.push(team(id,'T'+c))}
+ const t=process.hrtime.bigint(),r=validateIndexed(events,teams),ms=Number(process.hrtime.bigint()-t)/1e6;
+ assert.equal(events.length,480);assert.deepEqual(r.issues,[]);assert.ok(ms<1000,'synthetic 480 exceeded 1s: '+ms);
+});
